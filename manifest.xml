@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+    <iq:application entry="WalkingPadApp" id="5f0a2b1c-3d4e-4f50-a6b7-c8d9e0f1a2b3" launcherIcon="@Drawables.LauncherIcon" minSdkVersion="3.1.0" name="@Strings.AppName" type="datafield" version="0.1.0">
+        <iq:products>
+            <iq:product id="vivoactive4s"/>
+        </iq:products>
+        <iq:permissions>
+            <iq:uses-permission id="BluetoothLowEnergy"/>
+            <iq:uses-permission id="FitContributor"/>
+        </iq:permissions>
+        <iq:languages>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>

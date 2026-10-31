@@ -1,0 +1,14 @@
+# Build output
+bin/
+*.prg
+*.iq
+*.log
+*.debug
+
+# Developer signing key — never commit, each developer generates their own
+developer_key.*
+*.der
+
+# OS / editor
+.DS_Store
+Thumbs.db

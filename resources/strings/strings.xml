@@ -1,0 +1,11 @@
+<strings>
+    <string id="AppName">Pad Lite</string>
+    <string id="FieldSetting">Show</string>
+    <string id="OptSpeed">Speed</string>
+    <string id="OptDistance">Distance</string>
+    <string id="OptSteps">Steps</string>
+    <string id="OptTime">Time</string>
+    <string id="Scanning">Scanning</string>
+    <string id="Connecting">Connecting</string>
+    <string id="NoData">--</string>
+</strings>
