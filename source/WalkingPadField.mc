@@ -3,6 +3,7 @@ import Toybox.Application;
 import Toybox.Application.Properties;
 import Toybox.FitContributor;
 import Toybox.Graphics;
+import Toybox.System;
 import Toybox.Lang;
 import Toybox.Time;
 import Toybox.WatchUi;
@@ -44,6 +45,10 @@ class WalkingPadField extends WatchUi.DataField {
     //! compute() runs ~1 Hz while the field is on screen: poll the
     //! pad and push the latest values into the FIT fields.
     function compute(info as Info) as Numeric or Duration or String or Null {
+        var st = System.getSystemStats();
+        if (PadState.seen <= 3) {
+            System.println("wp mem " + st.usedMemory + "/" + st.totalMemory);
+        }
         var ble = PadState.ble;
         if (ble != null) {
             (ble as PadBleDelegate).pollStats();

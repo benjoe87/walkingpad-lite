@@ -81,18 +81,25 @@ class PadBleDelegate extends BluetoothLowEnergy.BleDelegate {
 
     function onConnectedStateChanged(device as Device, state as BluetoothLowEnergy.ConnectionState) as Void {
         System.println("wp connstate " + state);
-        if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
-            var svc = device.getService(SVC);
-            if (svc != null) {
-                _chrIn = svc.getCharacteristic(CHR_IN);
-                _chrOut = svc.getCharacteristic(CHR_OUT);
-                var cccd = _chrIn != null ? _chrIn.getDescriptor(BluetoothLowEnergy.cccdUuid()) : null;
-                if (cccd != null) {
-                    cccd.requestWrite([0x01, 0x00]b);
+        try {
+            if (state == BluetoothLowEnergy.CONNECTION_STATE_CONNECTED) {
+                var svc = device.getService(SVC);
+                if (svc != null) {
+                    _chrIn = svc.getCharacteristic(CHR_IN);
+                    _chrOut = svc.getCharacteristic(CHR_OUT);
+                    var cccd = _chrIn != null ? _chrIn.getDescriptor(BluetoothLowEnergy.cccdUuid()) : null;
+                    if (cccd != null) {
+                        cccd.requestWrite([0x01, 0x00]b);
+                    }
+                    PadState.status = 2;
+                } else {
+                    startScan();
                 }
-                PadState.status = 2;
+            } else {
+                dropConnection();
+                startScan();
             }
-        } else {
+        } catch (e instanceof Lang.Exception) {
             dropConnection();
             startScan();
         }
@@ -100,10 +107,15 @@ class PadBleDelegate extends BluetoothLowEnergy.BleDelegate {
 
     function onDescriptorWrite(descriptor as Descriptor, status as Status) as Void {
         System.println("wp desc " + status);
-        pollStats();
+        try {
+            pollStats();
+        } catch (e instanceof Lang.Exception) {
+            PadState.serr++;
+        }
     }
 
     function onCharacteristicChanged(characteristic as Characteristic, value as ByteArray) as Void {
+        try {
         if (!characteristic.getUuid().equals(CHR_IN) || value.size() < 14
             || value[0] != 0xF8 || value[1] != 0xA2) {
             if (PadState.seen < 900000) { System.println("wp chg bad " + value.size()); }
@@ -114,6 +126,9 @@ class PadBleDelegate extends BluetoothLowEnergy.BleDelegate {
         PadState.time = (value[5] << 16) | (value[6] << 8) | value[7];
         PadState.distance = ((value[8] << 16) | (value[9] << 8) | value[10]) * 10;
         PadState.steps = (value[11] << 16) | (value[12] << 8) | value[13];
+        } catch (e instanceof Lang.Exception) {
+            PadState.serr++;
+        }
     }
 
     //! Called ~1 Hz from the field's compute(). Sends one queued
@@ -123,11 +138,15 @@ class PadBleDelegate extends BluetoothLowEnergy.BleDelegate {
         if (_chrOut == null) {
             return;
         }
-        if (_queue.size() > 0) {
-            _chrOut.requestWrite(_queue[0] as ByteArray, {:writeType => BluetoothLowEnergy.WRITE_TYPE_DEFAULT});
-            _queue = _queue.slice(1, null);
-        } else {
-            _chrOut.requestWrite(ASK_STATS, {:writeType => BluetoothLowEnergy.WRITE_TYPE_DEFAULT});
+        try {
+            if (_queue.size() > 0) {
+                _chrOut.requestWrite(_queue[0] as ByteArray, {:writeType => BluetoothLowEnergy.WRITE_TYPE_DEFAULT});
+                _queue = _queue.slice(1, null);
+            } else {
+                _chrOut.requestWrite(ASK_STATS, {:writeType => BluetoothLowEnergy.WRITE_TYPE_DEFAULT});
+            }
+        } catch (e instanceof Lang.Exception) {
+            PadState.serr++;
         }
     }
 
