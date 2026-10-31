@@ -1,5 +1,6 @@
 import Toybox.Activity;
 import Toybox.Application;
+import Toybox.Application.Properties;
 import Toybox.FitContributor;
 import Toybox.Graphics;
 import Toybox.Lang;
@@ -14,6 +15,8 @@ class WalkingPadField extends WatchUi.DataField {
     private var _fStepsTot as FitContributor.Field?;
     private var _fTime as FitContributor.Field?;
     private var _lastSpeed as Float = -1.0f;
+    private var _view as Number = 0;
+    private var _auto as Boolean = false;
 
     function initialize() {
         DataField.initialize();
@@ -30,6 +33,8 @@ class WalkingPadField extends WatchUi.DataField {
                 {:mesgType => FitContributor.MESG_TYPE_SESSION, :units => "steps"});
             _fTime = createField("pad_time", 5, FitContributor.DATA_TYPE_UINT32,
                 {:mesgType => FitContributor.MESG_TYPE_SESSION, :units => "s"});
+            _view = Properties.getValue("view") as Number;
+            _auto = Properties.getValue("auto") as Boolean;
         } catch (e instanceof Lang.Exception) {
             var m = e.getErrorMessage();
             PadState.lastName = "E2:" + (m != null ? m : "?");
@@ -39,8 +44,9 @@ class WalkingPadField extends WatchUi.DataField {
     //! compute() runs ~1 Hz while the field is on screen: poll the
     //! pad and push the latest values into the FIT fields.
     function compute(info as Info) as Numeric or Duration or String or Null {
-        if (PadState.ble != null) {
-            PadState.ble.pollStats();
+        var ble = PadState.ble;
+        if (ble != null) {
+            (ble as PadBleDelegate).pollStats();
         }
         try {
             if (PadState.speed != _lastSpeed && _fSpeed != null) {
@@ -67,6 +73,39 @@ class WalkingPadField extends WatchUi.DataField {
             PadState.lastName = "E3:" + (m != null ? m : "?");
         }
         return null;
+    }
+
+    //! Belt auto start/stop tied to the activity timer (enabled via
+    //! the "Auto start/stop belt" field setting).
+    function onTimerStart() as Void {
+        beltCmd(true);
+    }
+
+    function onTimerResume() as Void {
+        beltCmd(true);
+    }
+
+    function onTimerPause() as Void {
+        beltCmd(false);
+    }
+
+    function onTimerStop() as Void {
+        beltCmd(false);
+    }
+
+    function onTimerReset() as Void {
+        beltCmd(false);
+    }
+
+    private function beltCmd(start as Boolean) as Void {
+        var ble = PadState.ble;
+        if (_auto && ble != null) {
+            if (start) {
+                (ble as PadBleDelegate).startBelt((PadState.speed * 10).toNumber());
+            } else {
+                (ble as PadBleDelegate).stopBelt();
+            }
+        }
     }
 
     function onUpdate(dc as Dc) as Void {
@@ -99,6 +138,34 @@ class WalkingPadField extends WatchUi.DataField {
         var fLabel = Graphics.FONT_XTINY;
         var fBig = Graphics.FONT_NUMBER_MILD;
         var fMid = Graphics.FONT_MEDIUM;
+
+        if (_view != 0) {
+            var name = "Speed";
+            var val = PadState.speed.format("%.1f");
+            var unit = "km/h";
+            if (_view == 2) {
+                name = "Distance";
+                val = (PadState.distance / 1000.0f).format("%.2f");
+                unit = "km";
+            } else if (_view == 3) {
+                name = "Steps";
+                val = PadState.steps.toString();
+                unit = "";
+            } else if (_view == 4) {
+                name = "Time";
+                val = t;
+                unit = "";
+            }
+            var vy = (dc.getHeight() * 0.22).toNumber();
+            dc.drawText(x, vy, fLabel, name, Graphics.TEXT_JUSTIFY_CENTER);
+            vy += dc.getFontHeight(fLabel) + (dc.getHeight() * 0.06).toNumber();
+            dc.drawText(x, vy, fBig, val, Graphics.TEXT_JUSTIFY_CENTER);
+            if (!unit.equals("")) {
+                vy += dc.getFontHeight(fBig);
+                dc.drawText(x, vy, fLabel, unit, Graphics.TEXT_JUSTIFY_CENTER);
+            }
+            return;
+        }
 
         var y = (dc.getHeight() * 0.16).toNumber();
         dc.drawText(x, y, fLabel, "Speed", Graphics.TEXT_JUSTIFY_CENTER);

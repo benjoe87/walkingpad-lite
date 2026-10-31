@@ -1,0 +1,4 @@
+<properties>
+    <property id="view" type="number">0</property>
+    <property id="auto" type="boolean">false</property>
+</properties>

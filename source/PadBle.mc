@@ -23,6 +23,7 @@ class PadBleDelegate extends BluetoothLowEnergy.BleDelegate {
 
     private var _chrIn as Characteristic?;
     private var _chrOut as Characteristic?;
+    private var _queue as Array = [];
 
     function initialize() {
         BleDelegate.initialize();
@@ -115,10 +116,35 @@ class PadBleDelegate extends BluetoothLowEnergy.BleDelegate {
         PadState.steps = (value[11] << 16) | (value[12] << 8) | value[13];
     }
 
+    //! Called ~1 Hz from the field's compute(). Sends one queued
+    //! command frame per call (the pad drops back-to-back frames,
+    //! they need spacing), otherwise polls the status.
     function pollStats() as Void {
-        if (_chrOut != null) {
+        if (_chrOut == null) {
+            return;
+        }
+        if (_queue.size() > 0) {
+            _chrOut.requestWrite(_queue[0] as ByteArray, {:writeType => BluetoothLowEnergy.WRITE_TYPE_DEFAULT});
+            _queue = _queue.slice(1, null);
+        } else {
             _chrOut.requestWrite(ASK_STATS, {:writeType => BluetoothLowEnergy.WRITE_TYPE_DEFAULT});
         }
+    }
+
+    //! Queue the belt start sequence: manual mode, start, set speed.
+    //! The continuous ASK_STATS polling already keeps the app-control
+    //! path awake, so no leading stats frame is needed here.
+    function startBelt(speedX10 as Number) as Void {
+        _queue.add([0xF7, 0xA2, 0x02, 0x01, 0xA5, 0xFD]b);  // mode manual
+        _queue.add([0xF7, 0xA2, 0x04, 0x01, 0xA7, 0xFD]b);  // start belt
+        if (speedX10 > 0) {
+            var crc = (0xA2 + 0x01 + speedX10) & 0xFF;
+            _queue.add([0xF7, 0xA2, 0x01, speedX10, crc, 0xFD]b);  // set speed
+        }
+    }
+
+    function stopBelt() as Void {
+        _queue.add([0xF7, 0xA2, 0x01, 0x00, 0xA3, 0xFD]b);  // speed = 0 stops belt
     }
 
 

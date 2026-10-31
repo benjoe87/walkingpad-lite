@@ -1,0 +1,14 @@
+<settings>
+    <setting propertyKey="@Properties.view" title="@Strings.ViewSetting">
+        <settingConfig type="list" readonly="true">
+            <listEntry value="0">@Strings.OptAll</listEntry>
+            <listEntry value="1">@Strings.OptSpeed</listEntry>
+            <listEntry value="2">@Strings.OptDistance</listEntry>
+            <listEntry value="3">@Strings.OptSteps</listEntry>
+            <listEntry value="4">@Strings.OptTime</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.auto" title="@Strings.AutoSetting">
+        <settingConfig type="boolean"/>
+    </setting>
+</settings>
