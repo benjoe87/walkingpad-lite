@@ -71,6 +71,23 @@ Works best alone on a full data screen.
 The pad accepts only **one** BLE connection — close the KS Fit / WalkingPad
 phone app first, or the watch will never see it.
 
+## Seeing the fields in Garmin Connect
+
+Sideloaded apps never show Connect IQ (developer) fields in Garmin Connect —
+the fields must come from a store-installed app. To get them:
+
+1. Build the export: `monkeyc -f monkey.jungle -o bin/walkingpad.iq -e -y developer_key.der -r`
+   (already produced by the build — `bin/walkingpad.iq`)
+2. Go to https://developer.garmin.com/connect-iq/publish/ and upload it as a
+   **beta app** — beta apps are private, only you can install them.
+3. Install it on the watch through the Connect IQ Store link (via
+   Garmin Express or the Connect IQ phone app) — the sideloaded copy can be
+   removed afterwards.
+4. After the next synced activity, the `Pad *` fields appear in the
+   activity's Connect IQ charts and summary stats.
+
+Chart titles/units are defined in `resources/fitcontributions/fitcontributions.xml`.
+
 ## Debugging
 
 Crashes and `System.println` output land in `GARMIN/APPS/LOGS/CIQ_LOG.YML`

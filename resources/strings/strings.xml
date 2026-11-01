@@ -10,4 +10,14 @@
     <string id="Scanning">Scanning</string>
     <string id="Connecting">Connecting</string>
     <string id="NoData">--</string>
+    <string id="ChartSpeed">Pad Speed</string>
+    <string id="ChartDist">Pad Distance</string>
+    <string id="ChartSteps">Pad Steps</string>
+    <string id="ChartDistTotal">Pad Distance</string>
+    <string id="ChartStepsTotal">Pad Steps</string>
+    <string id="ChartTime">Pad Time</string>
+    <string id="UnitKmh">km/h</string>
+    <string id="UnitM">m</string>
+    <string id="UnitSteps">steps</string>
+    <string id="UnitS">s</string>
 </strings>
